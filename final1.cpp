@@ -1,12 +1,15 @@
-
 #include <opencv2/opencv.hpp>
 #include <iostream>
 using namespace cv;
 using namespace std;
+
 void onMouse(int event, int x, int y, int flags, void* userdata);
-void Set(Mat& canvas);
+void Set(Mat canvas);
 void Clear(int x, int y, Mat& canvas);
-Mat canvas(500, 700, CV_8UC3, Scalar(255, 255, 255));// windows img
+Mat canvas(500, 900, CV_8UC3, Scalar(255, 255, 255));// windows img
+void save();
+void load();
+
 int main() {
     namedWindow("windows", WINDOW_AUTOSIZE);// window named set
     setMouseCallback("windows", onMouse, &canvas);// mouse call back
@@ -16,36 +19,43 @@ int main() {
     }
     return 0;
 }
+
 void onMouse(int event, int x, int y, int flags, void* userdata) {// Mouse event function
     static bool drawing = false;
     static Point prevPoint(-1, -1);
-    Mat& canvas = *(Mat*)userdata;
+    Mat canvas = *(Mat*)userdata;
     Rect area(0, 0, 500, 500);// img area
-    string Name = "";
+
     switch (event) {
     case EVENT_LBUTTONDOWN:// mouse L down
         prevPoint = Point(x, y);
         if (area.contains(Point(x, y))) { drawing = true; }// 500,500 area inspect
-        if (500 < x) {// draw area
-            if (y > 400) { exit(1); }// exit area
-            else if (y > 300) { // run area
-
+        if (500 < x && x < 600) {// draw area
+            if (y > 400 ) { exit(1); }// exit area
+            else if (y > 300 ) { // run area
+                for (int i = 0; i < canvas.rows; ++i) {
+                    for (int j = 0; j < canvas.cols; ++j) {
+                        uchar pixel_value = canvas.at<uchar>(i, j);
+                        cout << "Pixel value at (" << i << ", " << j << "): " << static_cast<int>(pixel_value) << endl;
+                    }
+                }
+                Mat binaryImage = canvas(Rect(1, 1, 498, 498)).clone();
+                Mat element = getStructuringElement(MORPH_RECT, Size(40, 40));
+                Mat final1;
+                morphologyEx(binaryImage, final1, MORPH_OPEN, element);
+                morphologyEx(final1, final1, MORPH_OPEN, element);
+                imshow("Final Image", final1);
             }
             else if (y > 200) { Clear(x, y, canvas); }// clear area
-            else if (y > 100) { // load area
-                cout << "load file name: ";
-                cin >> Name;
-                Mat number = imread(Name);
-                number.copyTo(canvas(Rect(0, 0, 500, 500)));
-            }
-            else if (y > 0) { // save area
-                Mat save = canvas(Rect(1, 1, 498, 498)).clone();
-                resize(save, save, Size(500, 500));
-                cout << "save file name : ";
-                cin >> Name;
-                imwrite(Name, save);
-                cout << Name << " file saved" << endl;
-            }
+            else if (y > 100) { load(); }// load area
+            else if (y > 0) { save(); }// save area
+        }
+        else if (700 < x && x < 900) {
+            if (y > 400 ) { cout << "counter5"; }// exit area
+            else if (y > 300 ) { cout << "counter4"; }
+            else if (y > 200 ) { cout << "counter3"; }// clear area
+            else if (y > 100 ) { cout << "counter2"; }// load area
+            else if (y > 0 ) { cout << "counter1"; }// save area
         }
     case EVENT_MOUSEMOVE:// mouse move
         if (drawing) {
@@ -60,13 +70,19 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {// Mouse event
         break;
     }
 }
-void Set(Mat& canvas) { // interface function
+
+void Set(Mat canvas) { // interface function
     imshow("windows", canvas); // img print
     Rect saveButton(500, 0, 200, 100);// button
     Rect loadButton(500, 100, 200, 100);
     Rect clearButton(500, 200, 200, 100);
     Rect runButton(500, 300, 200, 100);
     Rect exitButton(500, 400, 200, 100);
+    Rect counter1Button(700, 0, 200, 100);
+    Rect counter2Button(700, 100, 200, 100);
+    Rect counter3Button(700, 200, 200, 100);
+    Rect counter4Button(700, 300, 200, 100);
+    Rect counter5Button(700, 400, 200, 100);
     rectangle(canvas, saveButton, Scalar(0, 0, 0), 2);// text
     putText(canvas, "Save", Point(saveButton.x + 10, saveButton.y + 50), FONT_HERSHEY_SIMPLEX, 1.5, Scalar(0, 0, 0), 3);
     rectangle(canvas, loadButton, Scalar(0, 0, 0), 2);
@@ -77,7 +93,18 @@ void Set(Mat& canvas) { // interface function
     putText(canvas, "Run", Point(runButton.x + 10, runButton.y + 50), FONT_HERSHEY_SIMPLEX, 1.5, Scalar(0, 0, 0), 3);
     rectangle(canvas, exitButton, Scalar(0, 0, 0), 2);
     putText(canvas, "Exit", Point(exitButton.x + 10, exitButton.y + 50), FONT_HERSHEY_SIMPLEX, 1.5, Scalar(0, 0, 0), 3);
+    rectangle(canvas, counter1Button, Scalar(0, 0, 0), 2);
+    putText(canvas, "counter1", Point(counter1Button.x + 10, counter1Button.y + 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0), 3);
+    rectangle(canvas, counter2Button, Scalar(0, 0, 0), 2);
+    putText(canvas, "counter2", Point(counter2Button.x + 10, counter2Button.y + 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0), 3);
+    rectangle(canvas, counter3Button, Scalar(0, 0, 0), 2);
+    putText(canvas, "counter3", Point(counter3Button.x + 10, counter3Button.y + 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0), 3);
+    rectangle(canvas, counter4Button, Scalar(0, 0, 0), 2);
+    putText(canvas, "counter4", Point(counter4Button.x + 10, counter4Button.y + 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0), 3);
+    rectangle(canvas, counter5Button, Scalar(0, 0, 0), 2);
+    putText(canvas, "counter5", Point(counter5Button.x + 10, counter5Button.y + 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0), 3);
 }
+
 void Clear(int x, int y, Mat& canvas) {// clear function
     Rect clearButton(500, 200, 200, 100);
     if (clearButton.contains(Point(x, y))) {
@@ -86,37 +113,102 @@ void Clear(int x, int y, Mat& canvas) {// clear function
         Set(canvas);
     }
 }
+
+void save() {
+    string Name = "";
+    Mat save = canvas(Rect(1, 1, 498, 498)).clone();
+    resize(save, save, Size(500, 500));
+    cout << "save file name : ";
+    cin >> Name;
+    imwrite(Name, save);
+    cout << Name << " file saved" << endl;
+}
+void load() {
+    string Name = "";
+    cout << "load file name: ";
+    cin >> Name;
+    Mat number = imread(Name);
+    number.copyTo(canvas(Rect(0, 0, 500, 500)));
+}
+
+
 /*
-1. ÃÊ±âÈ­ ¹× À©µµ¿ì ¼³Á¤ 500x700 Å©±âÀÇ Èò»ö Äµ¹ö½º¸¦ »ı¼ºÇÕ´Ï´Ù.
-"windows"¶ó´Â ÀÌ¸§ÀÇ À©µµ¿ì¸¦ »ı¼ºÇÕ´Ï´Ù. ¸¶¿ì½º Äİ¹é ÇÔ¼ö¸¦ ¼³Á¤ÇÏ¿© ¸¶¿ì½º ÀÌº¥Æ®¸¦ Ã³¸®ÇÕ´Ï´Ù.
+#include <iostream>
+#include <vector>
+#include "opencv2/opencv.hpp"
 
-2.¸ŞÀÎ ·çÇÁ ¹«ÇÑ ·çÇÁ¿¡¼­ Set(canvas);¸¦ È£ÃâÇÏ¿© ¹öÆ°°ú Äµ¹ö½º¸¦ È­¸é¿¡ Ç¥½ÃÇÕ´Ï´Ù.
+using namespace cv;
+using namespace std;
 
-3. ¸¶¿ì½º ÀÌº¥Æ® Ã³¸® (onMouse ÇÔ¼ö) 
+int main() {
+    // ì´ë¯¸ì§€ ì½ê¸°
+    Mat image = imread("97_00_00.jpg", IMREAD_GRAYSCALE);
+    if (image.empty()) {
+        cout << "Could not open or find the image" << endl;
+        return -1;
+    }
 
-¸¶¿ì½º ¿ŞÂÊ ¹öÆ°À» ´­·¶À» ¶§.
-ÀÔ·Â ¿µ¿ª(500x500) ³»¿¡¼­ µå·ÎÀ× ¸ğµå¸¦ È°¼ºÈ­ÇÕ´Ï´Ù.
-¹öÆ° ¿µ¿ª(500 ÀÌ»ó)¿¡¼­ ÀûÀıÇÑ ÀÛ¾÷(ÀúÀå, ºÒ·¯¿À±â, »èÁ¦, ½ÇÇà, Á¾·á)À» ¼öÇàÇÕ´Ï´Ù.
+    // ì´ì§„í™”
+    Mat binaryImage;
+    threshold(image, binaryImage, 128, 255, THRESH_BINARY);
+    Mat element = getStructuringElement(MORPH_RECT, Size(40, 40));
+    // ë‹«ê¸° ì—°ì‚°(Closing)
+    Mat closedImage;
 
-¸¶¿ì½º ÀÌµ¿ ½Ã. ·ÎÀ× ¸ğµå°¡ È°¼ºÈ­µÈ °æ¿ì, ¼±À» ±×¸³´Ï´Ù.
+    morphologyEx(binaryImage, closedImage, MORPH_CLOSE, element);
 
-¸¶¿ì½º ¿ŞÂÊ ¹öÆ°À» ¶ÃÀ» ¶§. µå·ÎÀ× ¸ğµå¸¦ ºñÈ°¼ºÈ­ÇÕ´Ï´Ù.
+    // ì—´ë¦° ì—°ì‚°(Opening)
+    Mat openedImage;
+    morphologyEx(binaryImage, openedImage, MORPH_OPEN, element);
+    
+    // 500x500 ì‚¬ì´ì¦ˆë¡œ ë¦¬ì‚¬ì´ì¦ˆ
+    Mat resized500x500;
+    resize(closedImage, resized500x500, Size(500, 500));
+    
+    // ìµœì¢…ì ìœ¼ë¡œ 100x100 ì‚¬ì´ì¦ˆë¡œ ë¦¬ì‚¬ì´ì¦ˆ
+    Mat finalImage;
+    resize(resized500x500, finalImage, Size(100, 100));
 
-4. ÀÎÅÍÆäÀÌ½º ¼³Á¤ (Set ÇÔ¼ö): Äµ¹ö½º¸¦ Ç¥½ÃÇÕ´Ï´Ù.
-¹öÆ° ¿µ¿ªÀ» Á¤ÀÇÇÏ°í »ç°¢Çü°ú ÅØ½ºÆ®¸¦ ±×·Á »ç¿ëÀÚ ÀÎÅÍÆäÀÌ½º¸¦ ¼³Á¤ÇÕ´Ï´Ù.
-Save, Load, Clear, Run, Exit ¹öÆ°À» ¼³Á¤ÇÕ´Ï´Ù.
+    // ê²°ê³¼ ì´ë¯¸ì§€ ì €ì¥
+    imwrite("output.jpg", openedImage);
+    // ê²°ê³¼ ì´ë¯¸ì§€ ë³´ì—¬ì£¼ê¸°
+    imshow("Final Image", openedImage);
+    waitKey(0);
 
-5. Äµ¹ö½º Áö¿ì±â (Clear ÇÔ¼ö):Clear ¹öÆ°ÀÌ Å¬¸¯µÇ¾úÀ» ¶§, Äµ¹ö½º¸¦ ÃÊ±â »óÅÂ·Î µÇµ¹¸³´Ï´Ù.
-ÄÜ¼ÖÃ¢¿¡ "windows Clear" ¸Ş½ÃÁö¸¦ Ãâ·ÂÇÕ´Ï´Ù.
+    return 0;
+}
+*/
+/*
+1. ì´ˆê¸°í™” ë° ìœˆë„ìš° ì„¤ì • 500x700 í¬ê¸°ì˜ í°ìƒ‰ ìº”ë²„ìŠ¤ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
+"windows"ë¼ëŠ” ì´ë¦„ì˜ ìœˆë„ìš°ë¥¼ ìƒì„±í•©ë‹ˆë‹¤. ë§ˆìš°ìŠ¤ ì½œë°± í•¨ìˆ˜ë¥¼ ì„¤ì •í•˜ì—¬ ë§ˆìš°ìŠ¤ ì´ë²¤íŠ¸ë¥¼ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 
-6.°¢ ¹öÆ°ÀÇ ±â´É
-ÀúÀå ±â´É(save) Save ¹öÆ° Å¬¸¯ ½Ã, ÄÜ¼ÖÃ¢¿¡¼­ ÆÄÀÏ¸íÀ» ÀÔ·Â ¹Ş¾Æ ÇöÀç ÀÔ·ÂÃ¢ÀÇ ¿µ»óÀ» ÆÄÀÏ·Î ÀúÀåÇÕ´Ï´Ù.
-ÀúÀåÇÒ ¿µ»óÀº 3Ã¤³Î ÄÃ·¯ ¿µ»óÀ¸·Î ÀúÀåµË´Ï´Ù.
+2.ë©”ì¸ ë£¨í”„ ë¬´í•œ ë£¨í”„ì—ì„œ Set(canvas);ë¥¼ í˜¸ì¶œí•˜ì—¬ ë²„íŠ¼ê³¼ ìº”ë²„ìŠ¤ë¥¼ í™”ë©´ì— í‘œì‹œí•©ë‹ˆë‹¤.
 
-»èÁ¦ ±â´É(Clear)Clear ¹öÆ° Å¬¸¯ ½Ã, ÀÔ·ÂÃ¢ÀÇ ³»¿ëÀ» »èÁ¦ÇÕ´Ï´Ù.
-Rect contains ÇÔ¼ö¸¦ »ç¿ëÇÏ¿© Å¬¸¯µÈ ¿µ¿ªÀ» È®ÀÎÇÏ°í ¸¶¿ì½º ÀÌº¥Æ®·Î Ã³¸®ÇÕ´Ï´Ù.
+3. ë§ˆìš°ìŠ¤ ì´ë²¤íŠ¸ ì²˜ë¦¬ (onMouse í•¨ìˆ˜) 
 
-ºÒ·¯¿À±â ±â´É(load)Load ¹öÆ° Å¬¸¯ ½Ã, ÄÜ¼ÖÃ¢¿¡¼­ ÆÄÀÏ¸íÀ» ÀÔ·Â ¹Ş¾Æ ¿µ»óÀ» ºÒ·¯¿Í ÀÔ·ÂÃ¢¿¡ Ãâ·ÂÇÕ´Ï´Ù.
+ë§ˆìš°ìŠ¤ ì™¼ìª½ ë²„íŠ¼ì„ ëˆŒë €ì„ ë•Œ.
+ì…ë ¥ ì˜ì—­(500x500) ë‚´ì—ì„œ ë“œë¡œì‰ ëª¨ë“œë¥¼ í™œì„±í™”í•©ë‹ˆë‹¤.
+ë²„íŠ¼ ì˜ì—­(500 ì´ìƒ)ì—ì„œ ì ì ˆí•œ ì‘ì—…(ì €ì¥, ë¶ˆëŸ¬ì˜¤ê¸°, ì‚­ì œ, ì‹¤í–‰, ì¢…ë£Œ)ì„ ìˆ˜í–‰í•©ë‹ˆë‹¤.
 
-Á¾·á±â´É(Exit) Exit ¹öÆ° Å¬¸¯ ½Ã, ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.
+ë§ˆìš°ìŠ¤ ì´ë™ ì‹œ. ë¡œì‰ ëª¨ë“œê°€ í™œì„±í™”ëœ ê²½ìš°, ì„ ì„ ê·¸ë¦½ë‹ˆë‹¤.
+
+ë§ˆìš°ìŠ¤ ì™¼ìª½ ë²„íŠ¼ì„ ë—ì„ ë•Œ. ë“œë¡œì‰ ëª¨ë“œë¥¼ ë¹„í™œì„±í™”í•©ë‹ˆë‹¤.
+
+4. ì¸í„°í˜ì´ìŠ¤ ì„¤ì • (Set í•¨ìˆ˜): ìº”ë²„ìŠ¤ë¥¼ í‘œì‹œí•©ë‹ˆë‹¤.
+ë²„íŠ¼ ì˜ì—­ì„ ì •ì˜í•˜ê³  ì‚¬ê°í˜•ê³¼ í…ìŠ¤íŠ¸ë¥¼ ê·¸ë ¤ ì‚¬ìš©ì ì¸í„°í˜ì´ìŠ¤ë¥¼ ì„¤ì •í•©ë‹ˆë‹¤.
+Save, Load, Clear, Run, Exit ë²„íŠ¼ì„ ì„¤ì •í•©ë‹ˆë‹¤.
+
+5. ìº”ë²„ìŠ¤ ì§€ìš°ê¸° (Clear í•¨ìˆ˜):Clear ë²„íŠ¼ì´ í´ë¦­ë˜ì—ˆì„ ë•Œ, ìº”ë²„ìŠ¤ë¥¼ ì´ˆê¸° ìƒíƒœë¡œ ë˜ëŒë¦½ë‹ˆë‹¤.
+ì½˜ì†”ì°½ì— "windows Clear" ë©”ì‹œì§€ë¥¼ ì¶œë ¥í•©ë‹ˆë‹¤.
+
+6.ê° ë²„íŠ¼ì˜ ê¸°ëŠ¥
+ì €ì¥ ê¸°ëŠ¥(save) Save ë²„íŠ¼ í´ë¦­ ì‹œ, ì½˜ì†”ì°½ì—ì„œ íŒŒì¼ëª…ì„ ì…ë ¥ ë°›ì•„ í˜„ì¬ ì…ë ¥ì°½ì˜ ì˜ìƒì„ íŒŒì¼ë¡œ ì €ì¥í•©ë‹ˆë‹¤.
+ì €ì¥í•  ì˜ìƒì€ 3ì±„ë„ ì»¬ëŸ¬ ì˜ìƒìœ¼ë¡œ ì €ì¥ë©ë‹ˆë‹¤.
+
+ì‚­ì œ ê¸°ëŠ¥(Clear)Clear ë²„íŠ¼ í´ë¦­ ì‹œ, ì…ë ¥ì°½ì˜ ë‚´ìš©ì„ ì‚­ì œí•©ë‹ˆë‹¤.
+Rect contains í•¨ìˆ˜ë¥¼ ì‚¬ìš©í•˜ì—¬ í´ë¦­ëœ ì˜ì—­ì„ í™•ì¸í•˜ê³  ë§ˆìš°ìŠ¤ ì´ë²¤íŠ¸ë¡œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
+
+ë¶ˆëŸ¬ì˜¤ê¸° ê¸°ëŠ¥(load)Load ë²„íŠ¼ í´ë¦­ ì‹œ, ì½˜ì†”ì°½ì—ì„œ íŒŒì¼ëª…ì„ ì…ë ¥ ë°›ì•„ ì˜ìƒì„ ë¶ˆëŸ¬ì™€ ì…ë ¥ì°½ì— ì¶œë ¥í•©ë‹ˆë‹¤.
+
+ì¢…ë£Œê¸°ëŠ¥(Exit) Exit ë²„íŠ¼ í´ë¦­ ì‹œ, í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.
     */
